@@ -1,92 +1,78 @@
 const express = require('express');
 const axios = require('axios');
-const UserAgent = require('user-agents');
-const rateLimit = require('express-rate-limit');
-const helmet = require('helmet');
+const cors = require('cors');
 const path = require('path');
-
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
-// 1. SECURITY & STATIC FILES
-app.use(helmet({ contentSecurityPolicy: false }));
+// Middleware - Biar koneksi lancar jaya
+app.use(cors());
+app.use(express.static('public'));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// 2. ADMIN MONITORING (LOG SETIAP AKSES)
-app.use((req, res, next) => {
-    if (req.path === '/') {
-        const time = new Date().toLocaleTimeString();
-        console.log(`\n[${time}] 👥 VISITOR DETECTED!`);
-        console.log(`[${time}] 🌐 IP: ${req.ip}`);
-        console.log(`[${time}] 📱 AGENT: ${req.headers['user-agent'].substring(0, 50)}...`);
-    }
-    next();
-});
-
-// 3. RATE LIMITER (ANTI SPAM)
-const downloadLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 Menit
-    max: 20, // Max 20 request per IP
-    handler: (req, res) => {
-        console.log(`\n[⚠️ WARN] IP ${req.ip} TERDETEKSI SPAM!`);
-        res.status(429).json({ message: "Sabar bos, jangan spam! Tunggu 15 menit." });
-    }
-});
-
-// 4. MAIN ENGINE (DOWNLOADER)
-app.get('/download', downloadLimiter, async (req, res) => {
-    const targetUrl = req.query.url;
-    const time = new Date().toLocaleTimeString();
-
-    if (!targetUrl) {
-        return res.status(400).json({ error: "Link Kosong!" });
-    }
-
-    console.log(`\n[${time}] 📥 ATTEMPTING EXTRACTION...`);
-    console.log(`[${time}] 🔗 URL: ${targetUrl}`);
-    console.log(`[${time}] 📡 IP : ${req.ip}`);
-
+// ==========================================
+// MESIN DOWNLOADER (BYPASS ENGINE V6)
+// ==========================================
+async function tikDown(url) {
     try {
-        // Generate Stealth User-Agent
-        const ua = new UserAgent({ deviceCategory: 'mobile' }).toString();
-
-        // HIT API TIKLYDOWN (STABLE)
-        const response = await axios.get(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(targetUrl)}`, {
-            headers: { 'User-Agent': ua }
-        });
-
-        // Verifikasi Data
-        if (response.data) {
-            console.log(`[${time}] ✅ SUCCESS: Data secured for ${req.ip}`);
-            res.json(response.data);
-        } else {
-            throw new Error("Empty Response");
+        const res = await axios.post('https://www.tikwm.com/api/', new URLSearchParams({
+            url: url,
+            count: 12,
+            cursor: 0,
+            web: 1,
+            hd: 1
+        }));
+        
+        if (res.data.data) {
+            const data = res.data.data;
+            return {
+                status: true,
+                title: data.title,
+                thumbnail: 'https://www.tikwm.com' + data.cover,
+                video: 'https://www.tikwm.com' + (data.hdplay || data.play),
+                audio: 'https://www.tikwm.com' + data.music,
+                stats: {
+                    views: data.play_count,
+                    likes: data.digg_count,
+                    comments: data.comment_count
+                }
+            };
         }
+        return { status: false, msg: "Video tidak ditemukan atau link salah." };
+    } catch (e) {
+        return { status: false, msg: "Gagal menembus firewall target." };
+    }
+}
 
-    } catch (error) {
-        console.log(`[${time}] ❌ ERROR: Failed to bypass server target.`);
-        console.error(`Reason: ${error.message}`);
-        res.status(500).json({ message: "Gagal menembus firewall target." });
+// ==========================================
+// ROUTE API (GABUNGAN V5 ENDPOINT)
+// ==========================================
+app.get('/api/download', async (req, res) => {
+    const { url } = req.query;
+    if (!url) return res.status(400).json({ status: false, msg: 'Masukkan URL-nya dulu, Bos!' });
+
+    // Log aktivitas biar lu tau siapa yang pake
+    console.log(`[REQUEST] Link: ${url}`);
+
+    const result = await tikDown(url);
+    if (result.status) {
+        res.json(result);
+    } else {
+        res.status(500).json(result);
     }
 });
 
-// 5. RUN SERVER WITH ASCII ART
+// Jalankan Server
 app.listen(PORT, () => {
     console.clear();
     console.log(`
-    ██████╗  ██████╗  ██████╗ ███████╗████████╗
-    ██╔════╝ ██╔═══██╗██╔═══██╗██╔════╝╚══██╔══╝
-    ██║  ███╗██║   ██║██║   ██║███████╗   ██║   
-    ██║   ██║██║   ██║██║   ██║╚════██║   ██║   
-    ╚██████╔╝╚██████╔╝╚██████╔╝███████║   ██║   
-     ╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   
-    =============================================
-    🚀 ENGINE   : GOOSTTEAM V4.0 ELITE
-    📡 PORT     : ${PORT}
-    🛡️  SECURITY : HIGH (HELMET & RATE-LIMIT)
-    📊 MONITOR  : ACTIVE (REAL-TIME LOGGING)
-    =============================================
-    [SYSTEM] Server is now listening for requests...
+    ==============================================
+    🚀 GOOST PROJECT - HYBRID VERSION (V5 + V6)
+    ==============================================
+    🖥️  SERVER : http://localhost:${PORT}
+    🛠️  ENGINE : TikWM Turbo Bypass
+    🛡️  STATUS : FIREWALL PENETRATED
+    ==============================================
+    📢 Web lu sudah lebih unggul dari yang lain!
     `);
 });
