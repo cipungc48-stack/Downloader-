@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOOSTTEAM | Ultimate Downloader Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #050505; color: #fff; min-height: 100vh; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .btn-primary { background: linear-gradient(135deg, #6366f1, #a855f7); transition: all 0.3s ease; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); }
+        .nav-link { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.3s; }
+        .nav-link:hover { color: #818cf8; }
+        .status-badge { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); color: #22c55e; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-pop { animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    </style>
+</head>
+<body class="bg-[#050505]">
+
+    <nav class="fixed top-0 w-full z-50 glass border-b border-white/5 px-6 py-4">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black">G</div>
+                <span class="font-bold tracking-tighter text-xl">GOOST<span class="text-indigo-400">TEAM</span></span>
+            </div>
+            <div class="hidden md:flex gap-8">
+                <a href="#" onclick="showSection('downloader')" class="nav-link">Downloader</a>
+                <a href="#" onclick="showSection('tutorial')" class="nav-link">Cara Pakai</a>
+                <a href="#" onclick="showSection('about')" class="nav-link">Update Log</a>
+            </div>
+            <div class="flex gap-4 items-center">
+                <span class="status-badge px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Server: Online</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-20 px-6 max-w-4xl mx-auto">
+        
+        <div id="section-downloader" class="space-y-10">
+            <div class="text-center space-y-4">
+                <h2 class="text-4xl md:text-6xl font-extrabold tracking-tighter leading-tight">
+                    Ekstrak Media Apapun <br><span class="text-indigo-500">Dalam Hitungan Detik.</span>
+                </h2>
+                <p class="text-gray-500 text-sm max-w-md mx-auto">Mendukung TikTok No Watermark, Instagram Reels, dan Konversi MP3 kualitas tinggi.</p>
+            </div>
+
+            <div class="glass p-2 rounded-2xl flex flex-col md:flex-row gap-2">
+                <div class="flex-grow flex items-center px-4 gap-3">
+                    <i class="fa-solid fa-link text-gray-600"></i>
+                    <input type="text" id="targetUrl" placeholder="Tempel link video di sini..." 
+                        class="bg-transparent border-none outline-none w-full py-4 font-medium text-sm placeholder:text-gray-700">
+                </div>
+                <button id="btnDownload" onclick="handleDownload()" class="btn-primary px-10 py-4 rounded-xl font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2">
+                    <span id="text-btn">Ekstrak</span>
+                </button>
+            </div>
+
+            <div id="loader" class="hidden animate-pulse flex flex-col items-center gap-4">
+                <div class="w-12 h-1 bg-indigo-500 rounded-full"></div>
+                <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.4em]">Bypassing Encryption...</p>
+            </div>
+
+            <div id="result-area" class="hidden animate-pop space-y-6">
+                <div class="glass p-6 rounded-3xl flex flex-col md:flex-row gap-6 items-center">
+                    <div id="preview-box" class="w-full md:w-48 h-48 bg-gray-900 rounded-2xl overflow-hidden border border-white/5 flex items-center justify-center">
+                        <img id="thumb-img" src="" class="w-full h-full object-cover hidden">
+                        <i id="thumb-icon" class="fa-solid fa-play text-4xl text-white/10"></i>
+                    </div>
+                    <div class="flex-grow space-y-4 text-center md:text-left">
+                        <div>
+                            <h3 id="video-title" class="text-lg font-bold line-clamp-2">Media Berhasil Diekstrak</h3>
+                            <p class="text-xs text-indigo-400 font-bold uppercase tracking-widest mt-1">Ready to download</p>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <button onclick="openLink('video')" class="bg-white text-black p-4 rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-2 hover:bg-indigo-400 transition-colors">
+                                <i class="fa-solid fa-video"></i> Download Video (MP4)
+                            </button>
+                            <button onclick="openLink('audio')" class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 p-4 rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-2 hover:bg-indigo-500/20 transition-colors">
+                                <i class="fa-solid fa-music"></i> Download Musik (MP3)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-tutorial" class="hidden space-y-8 animate-pop">
+            <h2 class="text-3xl font-black uppercase tracking-tighter border-l-4 border-indigo-500 pl-4">Cara Menggunakan</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="glass p-6 rounded-2xl space-y-4">
+                    <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center font-bold">1</div>
+                    <p class="text-sm font-semibold">Salin link dari aplikasi TikTok atau Instagram.</p>
+                </div>
+                <div class="glass p-6 rounded-2xl space-y-4">
+                    <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center font-bold">2</div>
+                    <p class="text-sm font-semibold">Tempel link pada kolom "Target" di atas.</p>
+                </div>
+                <div class="glass p-6 rounded-2xl space-y-4 border-indigo-500/30">
+                    <div class="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center font-bold">3</div>
+                    <p class="text-sm font-semibold">Klik Ekstrak dan pilih format MP4 atau MP3.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="text-center py-10 opacity-40 border-t border-white/5">
+        <p class="text-[9px] font-bold uppercase tracking-[0.5em]">Developed by GoostTeam &copy; 2026</p>
+    </footer>
+
+    <script>
+        let mediaData = null;
+
+        function showSection(name) {
+            document.getElementById('section-downloader').classList.toggle('hidden', name !== 'downloader');
+            document.getElementById('section-tutorial').classList.toggle('hidden', name !== 'tutorial');
+        }
+
+        async function handleDownload() {
+            const input = document.getElementById('targetUrl');
+            const btn = document.getElementById('btnDownload');
+            const resultArea = document.getElementById('result-area');
+            const loader = document.getElementById('loader');
+
+            if (!input.value) return alert("Masukkan Link!");
+
+            resultArea.classList.add('hidden');
+            loader.classList.remove('hidden');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`/download?url=${encodeURIComponent(input.value)}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    mediaData = data.result || data;
+                    
+                    // Update UI dengan Data
+                    document.getElementById('video-title').innerText = mediaData.description || mediaData.title || "Media Secured";
+                    if (mediaData.thumbnail || mediaData.cover) {
+                        document.getElementById('thumb-img').src = mediaData.thumbnail || mediaData.cover;
+                        document.getElementById('thumb-img').classList.remove('hidden');
+                        document.getElementById('thumb-icon').classList.add('hidden');
+                    }
+                    
+                    loader.classList.add('hidden');
+                    resultArea.classList.remove('hidden');
+                } else {
+                    alert("Gagal: " + (data.message || "Server sibuk"));
+                    loader.classList.add('hidden');
+                }
+            } catch (err) {
+                alert("Koneksi terputus.");
+                loader.classList.add('hidden');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function openLink(type) {
+            if (!mediaData) return;
+            const link = type === 'video' ? (mediaData.video || mediaData.url) : (mediaData.music || mediaData.audio);
+            if (link) window.open(link, '_blank');
+            else alert("Format tidak tersedia.");
+        }
+    </script>
+</body>
+</html>
